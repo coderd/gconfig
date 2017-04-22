@@ -1,5 +1,40 @@
+// comments at header
 {
-	"string": "bar",
+	// bool
 	"bool": true,
-	"int": 12
+	// int
+	"int": 1, // actually float64
+	"float64": 1.01,
+	// string
+	"string": "foo",
+	// map[string]bool
+	"map_string_bool": {
+		"k1": true,
+		"k2": false
+	},
+	// map[string]float64
+	"map_string_float64": {
+		"k1": 1.0,
+		"k2": 1.01
+	},
+	// map[string]string
+	"map_string_string": {
+		"k1" : "v1",
+		"k2" : "v2"
+	},
+	// []bool
+	"slice_bool": [
+		true,
+		false
+	],
+	// []float64
+	"slice_float64": [
+		1.0,
+		1.01
+	],
+	// []string
+	"slice_string": [
+		"v1",
+		"v2"
+	]
 }
