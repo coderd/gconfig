@@ -337,7 +337,7 @@ func (c *ConfigFile) AlwaysSliceString(key string, defaultVal ...[]string) []str
 	return v
 }
 
-func (c *ConfigFile) Set(key string, dst interface{}) error {
+func (c *ConfigFile) Copy(key string, dst interface{}) error {
 	v, err := c.Get(key)
 	if err != nil {
 		return err
@@ -351,7 +351,7 @@ func (c *ConfigFile) Set(key string, dst interface{}) error {
 }
 
 func (c *ConfigFile) Must(key string, dst interface{}) {
-	if err := c.Set(key, dst); err != nil {
+	if err := c.Copy(key, dst); err != nil {
 		panic(err)
 	}
 }
@@ -372,7 +372,7 @@ func (c *ConfigFile) Always(key string, dst interface{}, defaultVal ...interface
 		}
 	}
 
-	err := c.Set(key, dst)
+	err := c.Copy(key, dst)
 	if err != nil {
 		if len(defaultVal) > 0 {
 			dstElem.Set(reflect.ValueOf(defaultVal[0]))
