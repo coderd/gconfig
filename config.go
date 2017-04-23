@@ -9,11 +9,18 @@ import (
 )
 
 const (
-	ErrKeyNotFound        = "gconfig: key '%s' is not found"
-	ErrNotBool            = "gconfig: key '%s' is not a bool"
-	ErrNotFloat64         = "gconfig: key '%s' is not a float64"
-	ErrNotString          = "gconfig: key '%s' is not a string"
-	ErrNotMapStringString = "gconfig: key '%s' is not a map[string]string"
+	ErrKeyNotFound           = "gconfig: key '%s' is not found"
+	ErrNotBool               = "gconfig: key '%s' is not a bool"
+	ErrNotFloat64            = "gconfig: key '%s' is not a float64"
+	ErrNotString             = "gconfig: key '%s' is not a string"
+	ErrNotMapStringInterface = "gconfig: key '%s' is not a map[string]interface{}"
+	// ErrNotMapStringBool      = "gconfig: key '%s' is not a map[string]bool"
+	// ErrNotMapStringFloat64   = "gconfig: key '%s' is not a map[string]float64"
+	// ErrNotMapStringString    = "gconfig: key '%s' is not a map[string]string"
+	ErrNotSliceInterface = "gconfig: key '%s' is not a []interface{}"
+	// ErrNotSliceBool          = "gconfig: key '%s' is not a []bool"
+	// ErrNotSliceFloat64       = "gconfig: key '%s' is not a []float64"
+	// ErrNotSliceString        = "gconfig: key '%s' is not a []string"
 )
 
 type ConfigFile struct {
@@ -92,43 +99,84 @@ func (c *ConfigFile) String(key string) (string, error) {
 	}
 }
 
-func (c *ConfigFile) MapStringBool(key string) (map[string]bool, error) {
+func (c *ConfigFile) MapStringInterface(key string) (map[string]interface{}, error) {
 	v, err := c.Get(key)
 	if err != nil {
 		return nil, err
 	}
 
 	if value, ok := v.(map[string]interface{}); ok {
-		return MapStringBool(value)
-	} else {
-		return nil, fmt.Errorf(ErrNotMapStringString, key)
+		return value, nil
 	}
+
+	return nil, fmt.Errorf(ErrNotMapStringInterface, key)
+}
+
+func (c *ConfigFile) MapStringBool(key string) (map[string]bool, error) {
+	v, err := c.MapStringInterface(key)
+	if err != nil {
+		return nil, err
+	}
+
+	return MapStringBool(v)
 }
 
 func (c *ConfigFile) MapStringFloat64(key string) (map[string]float64, error) {
-	v, err := c.Get(key)
+	v, err := c.MapStringInterface(key)
 	if err != nil {
 		return nil, err
 	}
 
-	if value, ok := v.(map[string]interface{}); ok {
-		return MapStringFloat64(value)
-	} else {
-		return nil, fmt.Errorf(ErrNotMapStringString, key)
-	}
+	return MapStringFloat64(v)
 }
 
 func (c *ConfigFile) MapStringString(key string) (map[string]string, error) {
+	v, err := c.MapStringInterface(key)
+	if err != nil {
+		return nil, err
+	}
+
+	return MapStringString(v)
+}
+
+func (c *ConfigFile) SliceInterface(key string) ([]interface{}, error) {
 	v, err := c.Get(key)
 	if err != nil {
 		return nil, err
 	}
 
-	if value, ok := v.(map[string]interface{}); ok {
-		return MapStringString(value)
+	if value, ok := v.([]interface{}); ok {
+		return value, nil
 	} else {
-		return nil, fmt.Errorf(ErrNotMapStringString, key)
+		return nil, fmt.Errorf(ErrNotSliceInterface, key)
 	}
+}
+
+func (c *ConfigFile) SliceBool(key string) ([]bool, error) {
+	v, err := c.SliceInterface(key)
+	if err != nil {
+		return nil, err
+	}
+
+	return sliceBool(v)
+}
+
+func (c *ConfigFile) SliceFloat64(key string) ([]float64, error) {
+	v, err := c.SliceInterface(key)
+	if err != nil {
+		return nil, err
+	}
+
+	return sliceFloat64(v)
+}
+
+func (c *ConfigFile) SliceString(key string) ([]string, error) {
+	v, err := c.SliceInterface(key)
+	if err != nil {
+		return nil, err
+	}
+
+	return sliceString(v)
 }
 
 func (c *ConfigFile) MustBool(key string) bool {
@@ -185,6 +233,33 @@ func (c *ConfigFile) MustMapStringString(key string) map[string]string {
 	return v
 }
 
+func (c *ConfigFile) MustSliceBool(key string) []bool {
+	v, err := c.SliceBool(key)
+	if err != nil {
+		panic(err)
+	}
+
+	return v
+}
+
+func (c *ConfigFile) MustSliceFloat64(key string) []float64 {
+	v, err := c.SliceFloat64(key)
+	if err != nil {
+		panic(err)
+	}
+
+	return v
+}
+
+func (c *ConfigFile) MustSliceString(key string) []string {
+	v, err := c.SliceString(key)
+	if err != nil {
+		panic(err)
+	}
+
+	return v
+}
+
 func (c *ConfigFile) AlwaysBool(key string, defaultVal ...bool) bool {
 	v, err := c.Bool(key)
 	if err != nil && len(defaultVal) > 0 {
@@ -232,6 +307,33 @@ func (c *ConfigFile) AlwaysMapStringFloat64(key string, defaultVal ...map[string
 
 func (c *ConfigFile) AlwaysMapStringString(key string, defaultVal ...map[string]string) map[string]string {
 	v, err := c.MapStringString(key)
+	if err != nil && len(defaultVal) > 0 {
+		return defaultVal[0]
+	}
+
+	return v
+}
+
+func (c *ConfigFile) AlwaysSliceBool(key string, defaultVal ...[]bool) []bool {
+	v, err := c.SliceBool(key)
+	if err != nil && len(defaultVal) > 0 {
+		return defaultVal[0]
+	}
+
+	return v
+}
+
+func (c *ConfigFile) AlwaysSliceFloat64(key string, defaultVal ...[]float64) []float64 {
+	v, err := c.SliceFloat64(key)
+	if err != nil && len(defaultVal) > 0 {
+		return defaultVal[0]
+	}
+
+	return v
+}
+
+func (c *ConfigFile) AlwaysSliceString(key string, defaultVal ...[]string) []string {
+	v, err := c.SliceString(key)
 	if err != nil && len(defaultVal) > 0 {
 		return defaultVal[0]
 	}

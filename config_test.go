@@ -21,6 +21,9 @@ func TestLoadJsonFile(t *testing.T) {
 		msb map[string]bool
 		msf map[string]float64
 		mss map[string]string
+		sb  []bool
+		sf  []float64
+		ss  []string
 	)
 
 	// Test correct cases
@@ -52,6 +55,15 @@ func TestLoadJsonFile(t *testing.T) {
 	_, err = configFile.MapStringString("map_string_string")
 	assert.Nil(t, err)
 
+	_, err = configFile.SliceBool("slice_bool")
+	assert.Nil(t, err)
+
+	_, err = configFile.SliceFloat64("slice_float64")
+	assert.Nil(t, err)
+
+	_, err = configFile.SliceString("slice_string")
+	assert.Nil(t, err)
+
 	// Test must-getting
 	b = configFile.MustBool("bool")
 	assert.True(t, b)
@@ -77,6 +89,18 @@ func TestLoadJsonFile(t *testing.T) {
 		configFile.MustMapStringString("map_string_string")
 	})
 
+	assert.NotPanics(t, func() {
+		configFile.MustSliceBool("slice_bool")
+	})
+
+	assert.NotPanics(t, func() {
+		configFile.MustSliceFloat64("slice_float64")
+	})
+
+	assert.NotPanics(t, func() {
+		configFile.MustSliceString("slice_string")
+	})
+
 	// Test always-getting
 	b = configFile.AlwaysBool("bool")
 	assert.True(t, b)
@@ -98,6 +122,15 @@ func TestLoadJsonFile(t *testing.T) {
 
 	mss = configFile.AlwaysMapStringString("map_string_string")
 	assert.True(t, len(mss) > 0)
+
+	sb = configFile.AlwaysSliceBool("slice_bool")
+	assert.True(t, len(sb) > 0)
+
+	sf = configFile.AlwaysSliceFloat64("slice_float64")
+	assert.True(t, len(sf) > 0)
+
+	ss = configFile.AlwaysSliceString("slice_string")
+	assert.True(t, len(ss) > 0)
 
 	// Test others
 	f = 0.0
@@ -133,6 +166,15 @@ func TestLoadJsonFile(t *testing.T) {
 	_, err = configFile.MapStringString("map_string_float64")
 	assert.NotNil(t, err)
 
+	_, err = configFile.SliceBool("slice_float64")
+	assert.NotNil(t, err)
+
+	_, err = configFile.SliceFloat64("slice_bool")
+	assert.NotNil(t, err)
+
+	_, err = configFile.SliceString("slice_float64")
+	assert.NotNil(t, err)
+
 	// Test must-getting
 	assert.Panics(t, func() {
 		configFile.MustBool("int")
@@ -162,6 +204,18 @@ func TestLoadJsonFile(t *testing.T) {
 		configFile.MustMapStringString("map_string_float64")
 	})
 
+	assert.Panics(t, func() {
+		configFile.MustSliceBool("slice_float64")
+	})
+
+	assert.Panics(t, func() {
+		configFile.MustSliceFloat64("slice_bool")
+	})
+
+	assert.Panics(t, func() {
+		configFile.MustSliceString("slice_float64")
+	})
+
 	// Test always-getting without default values
 	b = configFile.AlwaysBool("int")
 	assert.False(t, b)
@@ -175,6 +229,24 @@ func TestLoadJsonFile(t *testing.T) {
 	s = configFile.AlwaysString("float64")
 	assert.Equal(t, "", s)
 
+	msb = configFile.AlwaysMapStringBool("map_string_float64")
+	assert.True(t, len(msb) == 0)
+
+	msf = configFile.AlwaysMapStringFloat64("map_string_bool")
+	assert.True(t, len(msf) == 0)
+
+	mss = configFile.AlwaysMapStringString("map_string_float64")
+	assert.True(t, len(mss) == 0)
+
+	sb = configFile.AlwaysSliceBool("slice_float64")
+	assert.True(t, len(sb) == 0)
+
+	sf = configFile.AlwaysSliceFloat64("slice_bool")
+	assert.True(t, len(sf) == 0)
+
+	ss = configFile.AlwaysSliceString("slice_float64")
+	assert.True(t, len(ss) == 0)
+
 	// Test always-getting with default values
 	b = configFile.AlwaysBool("int", true)
 	assert.True(t, b)
@@ -187,6 +259,24 @@ func TestLoadJsonFile(t *testing.T) {
 
 	s = configFile.AlwaysString("float64", "bar")
 	assert.Equal(t, "bar", s)
+
+	msb = configFile.AlwaysMapStringBool("map_string_float64", map[string]bool{"k1": true})
+	assert.True(t, len(msb) > 0)
+
+	msf = configFile.AlwaysMapStringFloat64("map_string_bool", map[string]float64{"k1": 1.0})
+	assert.True(t, len(msf) > 0)
+
+	mss = configFile.AlwaysMapStringString("map_string_float64", map[string]string{"k1": "v1"})
+	assert.True(t, len(mss) > 0)
+
+	sb = configFile.AlwaysSliceBool("slice_float64", []bool{true})
+	assert.True(t, len(sb) > 0)
+
+	sf = configFile.AlwaysSliceFloat64("slice_bool", []float64{1.0})
+	assert.True(t, len(sf) > 0)
+
+	ss = configFile.AlwaysSliceString("slice_float64", []string{"v1"})
+	assert.True(t, len(ss) > 0)
 
 	// Test others
 	f = 0.0
