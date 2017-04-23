@@ -1,8 +1,9 @@
 package gconfig
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var testFile = "testdata/config.json"
@@ -283,4 +284,30 @@ func TestLoadJsonFile(t *testing.T) {
 	assert.Panics(t, func() {
 		configFile.Must("string", &f)
 	})
+
+	assert.Panics(t, func() {
+		f = 0.0
+		configFile.Always("string", f)
+	})
+
+	assert.Panics(t, func() {
+		f = 0.0
+		var fp *float64 = &f
+		fp = nil
+		configFile.Always("string", fp)
+	})
+
+	assert.Panics(t, func() {
+		f = 0.0
+		configFile.Always("string", &f, 1)
+	})
+
+	f = 0.1
+	configFile.Always("string", &f)
+	assert.Equal(t, 0.0, f)
+
+	f = 0.1
+	configFile.Always("string", &f, 0.2)
+	assert.Equal(t, 0.2, f)
+
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"reflect"
 	"regexp"
 
 	"github.com/coderd/gopkg/typeconv"
@@ -336,13 +337,47 @@ func (c *ConfigFile) AlwaysSliceString(key string, defaultVal ...[]string) []str
 	return v
 }
 
-func (c *ConfigFile) Must(key string, value interface{}) {
+func (c *ConfigFile) Set(key string, dst interface{}) error {
 	v, err := c.Get(key)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	if err = typeconv.Set(value, v); err != nil {
+	if err = typeconv.Set(dst, v); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *ConfigFile) Must(key string, dst interface{}) {
+	if err := c.Set(key, dst); err != nil {
 		panic(err)
+	}
+}
+
+func (c *ConfigFile) Always(key string, dst interface{}, defaultVal ...interface{}) {
+	dstReflectV := reflect.ValueOf(dst)
+	if dstReflectV.Kind() != reflect.Ptr || dstReflectV.IsNil() {
+		panic(fmt.Sprint("typeconv: invalid dst, non-nil pointer is expected, got: ", dst))
+	}
+
+	dstElem := dstReflectV.Elem()
+	dstElemReflectT := dstElem.Type()
+
+	if len(defaultVal) > 0 {
+		dvReflectT := reflect.TypeOf(defaultVal[0])
+		if dvReflectT != dstElemReflectT {
+			panic(fmt.Errorf("gconfig: defaultVal's type(%s) do not match dst element's(%s)", dvReflectT.String(), dstElemReflectT.String()))
+		}
+	}
+
+	err := c.Set(key, dst)
+	if err != nil {
+		if len(defaultVal) > 0 {
+			dstElem.Set(reflect.ValueOf(defaultVal[0]))
+		} else {
+			dstElem.Set(reflect.New(dstElemReflectT).Elem())
+		}
 	}
 }
