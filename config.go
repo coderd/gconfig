@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"reflect"
 	"regexp"
 
 	"github.com/coderd/gopkg/typeconv"
@@ -16,13 +15,7 @@ const (
 	ErrNotFloat64            = "gconfig: key '%s' is not a float64"
 	ErrNotString             = "gconfig: key '%s' is not a string"
 	ErrNotMapStringInterface = "gconfig: key '%s' is not a map[string]interface{}"
-	// ErrNotMapStringBool      = "gconfig: key '%s' is not a map[string]bool"
-	// ErrNotMapStringFloat64   = "gconfig: key '%s' is not a map[string]float64"
-	// ErrNotMapStringString    = "gconfig: key '%s' is not a map[string]string"
-	ErrNotSliceInterface = "gconfig: key '%s' is not a []interface{}"
-	// ErrNotSliceBool          = "gconfig: key '%s' is not a []bool"
-	// ErrNotSliceFloat64       = "gconfig: key '%s' is not a []float64"
-	// ErrNotSliceString        = "gconfig: key '%s' is not a []string"
+	ErrNotSliceInterface     = "gconfig: key '%s' is not a []interface{}"
 )
 
 type ConfigFile struct {
@@ -343,51 +336,13 @@ func (c *ConfigFile) AlwaysSliceString(key string, defaultVal ...[]string) []str
 	return v
 }
 
-// An InvalidPointerError describes an invalid argument passed to Must and Always.
-type InvalidPointerError struct {
-	Type reflect.Type
-}
-
-func (i *InvalidPointerError) Error() string {
-	if i.Type == nil {
-		return "gconfig: set (nil)"
-	}
-
-	if i.Type.Kind() != reflect.Ptr {
-		return "gconfig: set(non-pointer " + i.Type.String() + ")"
-	}
-	return "gconfig: set(nil " + i.Type.String() + ")"
-}
-
-func set(pointer interface{}, v interface{}) error {
-	pointerReflectV := reflect.ValueOf(pointer)
-	pointerReflectT := reflect.TypeOf(pointer)
-	if pointerReflectV.Kind() != reflect.Ptr || pointerReflectV.IsNil() {
-		return &InvalidPointerError{pointerReflectT}
-	}
-
-	vReflectV := reflect.ValueOf(v)
-	vReflectT := reflect.TypeOf(v)
-
-	pointerElem := pointerReflectV.Elem()
-	pointerElemT := pointerElem.Type()
-
-	if pointerElemT != vReflectT {
-		return fmt.Errorf("gconfig: set() pointer's element is a `%s`, not a `%s`", vReflectT.String(), pointerElemT.String())
-	}
-
-	pointerElem.Set(vReflectV)
-
-	return nil
-}
-
 func (c *ConfigFile) Must(key string, value interface{}) {
 	v, err := c.Get(key)
 	if err != nil {
 		panic(err)
 	}
 
-	if err = set(value, v); err != nil {
+	if err = typeconv.Set(value, v); err != nil {
 		panic(err)
 	}
 }
