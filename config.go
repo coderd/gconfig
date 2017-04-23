@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"reflect"
 	"regexp"
+
+	"github.com/coderd/gopkg/typeconv"
 )
 
 const (
@@ -118,7 +120,7 @@ func (c *ConfigFile) MapStringBool(key string) (map[string]bool, error) {
 		return nil, err
 	}
 
-	return MapStringBool(v)
+	return typeconv.MapStringBool(v)
 }
 
 func (c *ConfigFile) MapStringFloat64(key string) (map[string]float64, error) {
@@ -127,7 +129,7 @@ func (c *ConfigFile) MapStringFloat64(key string) (map[string]float64, error) {
 		return nil, err
 	}
 
-	return MapStringFloat64(v)
+	return typeconv.MapStringFloat64(v)
 }
 
 func (c *ConfigFile) MapStringString(key string) (map[string]string, error) {
@@ -136,7 +138,7 @@ func (c *ConfigFile) MapStringString(key string) (map[string]string, error) {
 		return nil, err
 	}
 
-	return MapStringString(v)
+	return typeconv.MapStringString(v)
 }
 
 func (c *ConfigFile) SliceInterface(key string) ([]interface{}, error) {
@@ -158,7 +160,7 @@ func (c *ConfigFile) SliceBool(key string) ([]bool, error) {
 		return nil, err
 	}
 
-	return sliceBool(v)
+	return typeconv.SliceBool(v)
 }
 
 func (c *ConfigFile) SliceFloat64(key string) ([]float64, error) {
@@ -167,7 +169,7 @@ func (c *ConfigFile) SliceFloat64(key string) ([]float64, error) {
 		return nil, err
 	}
 
-	return sliceFloat64(v)
+	return typeconv.SliceFloat64(v)
 }
 
 func (c *ConfigFile) SliceString(key string) ([]string, error) {
@@ -176,7 +178,7 @@ func (c *ConfigFile) SliceString(key string) ([]string, error) {
 		return nil, err
 	}
 
-	return sliceString(v)
+	return typeconv.SliceString(v)
 }
 
 func (c *ConfigFile) MustBool(key string) bool {
