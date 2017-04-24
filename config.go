@@ -359,7 +359,7 @@ func (c *ConfigFile) Must(key string, dst interface{}) {
 func (c *ConfigFile) Always(key string, dst interface{}, defaultVal ...interface{}) {
 	dstReflectV := reflect.ValueOf(dst)
 	if dstReflectV.Kind() != reflect.Ptr || dstReflectV.IsNil() {
-		panic(fmt.Sprint("typeconv: invalid dst, non-nil pointer is expected, got: ", dst))
+		panic(fmt.Sprint("gconfig: invalid dst, non-nil pointer is expected, got: ", dst))
 	}
 
 	dstElem := dstReflectV.Elem()
